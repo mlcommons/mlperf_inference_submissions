@@ -18,14 +18,14 @@ jobs:
         python-version: [ "3.10" ]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+      with:
+          path: submission_dir
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python3 -m pip install cm4mlops
     - name: Run MLPerf Inference Submission Checker
       run: |
-        cmr "run mlc mlcommons mlperf inference mlperf-inference submission checker submission-checker mlc-submission-checker" --adr.inference-src.tags=_repo.https://github.com/GATEOverflow/inference --quiet --extra_args=" --skip-extra-files-in-root-check" --submission_dir=./
+        git clone https://github.com/mlcommons/inference
+        python3 inference/tools/submission/submission_checker.py --input=./submission_dir
