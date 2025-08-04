@@ -3,7 +3,11 @@ name: MLPerf inference results updater
 
 on:
   push:
-    branches: [ "main", "v5.0" ]
+    branches: [ "main" ]
+    paths:
+      - "closed/**"
+      - "open/**"
+      - "network/**"
 
 jobs:
   build:
@@ -16,8 +20,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-      with:
-        ssh-key: ${{ secrets.DEPLOY_KEY }}
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v3
       with:
@@ -29,7 +31,7 @@ jobs:
 
     - name: Run MLPerf Inference Submission Checker and generate results summary
       run: |
-        mlcr run,mlperf,inference,submission-checker --adr.inference-src.tags=_branch.dev --quiet --repo_name=submissions_inference_v6.0 --extra_args=" --skip-extra-files-in-root-check"  --submission_dir=./ > >(tee -a out.txt) 2> >(tee -a checker_log.txt >&2)
+        mlcr run,mlperf,inference,submission-checker --adr.inference-src.tags=_branch.dev --quiet --extra_args=" --skip-extra-files-in-root-check"  --submission_dir=./ > >(tee -a out.txt) 2> >(tee -a checker_log.txt >&2)
         mlcr convert,from-csv,to-md --csv_file=summary.csv --md_file=README.md
 
         USER="mlcommons-bot"
@@ -44,5 +46,7 @@ jobs:
         cat temp | cat - README.md > temp1
         head -n 100 temp1 > README.md
         git add README.md
+        ver_num=$(cat dbversion)
+        let ver_num++
         
-        git diff --quiet HEAD -- summary.csv summary.json summary_results.json || (git commit -am "Updated results summary" && git push)
+        git diff-index --quiet HEAD || (echo "$ver_num" > dbversion && git commit -am "Updated results summary" && git push)
