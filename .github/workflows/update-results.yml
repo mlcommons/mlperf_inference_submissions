@@ -42,5 +42,7 @@ jobs:
         cat temp | cat - README.md > temp1
         head -n 100 temp1 > README.md
         git add README.md
+        ver_num=$(cat dbversion)
+        let ver_num++
         
-        git diff-index --quiet HEAD || (git commit -am "Updated results summary" && git push)
+        git diff-index --quiet HEAD || (echo "$ver_num" > dbversion && git commit -am "Updated results summary" && git push)
